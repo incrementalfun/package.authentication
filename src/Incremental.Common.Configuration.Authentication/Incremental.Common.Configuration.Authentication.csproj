@@ -4,7 +4,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
-        <PackageVersion>0.1.0</PackageVersion>
+        <PackageVersion>0.2.0</PackageVersion>
         <PackageId>Incremental.Common.Configuration.Authentication</PackageId>
         <Title>Common Authentication Resources</Title>
         <Authors>Lucas Maximiliano Marino</Authors>
