@@ -6,8 +6,17 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Incremental.Common.Configuration.Authentication
 {
+    /// <summary>
+    /// Extensions.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Configures default authentication resources.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
         public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAuthentication(options =>
@@ -32,6 +41,11 @@ namespace Incremental.Common.Configuration.Authentication
             return services;
         }
 
+        /// <summary>
+        /// Configures default authorization resources.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
         public static IServiceCollection AddDefaultAuthorization(this IServiceCollection services)
         {
             services.AddAuthorization(options =>
