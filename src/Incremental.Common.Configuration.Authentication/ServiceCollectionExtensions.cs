@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,9 @@ namespace Incremental.Common.Configuration.Authentication
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
+        /// <param name="hubPath"></param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration, string hubPath = "")
         {
             services.AddAuthentication(options =>
             {
@@ -34,8 +36,29 @@ namespace Incremental.Common.Configuration.Authentication
                     ValidateAudience = false,
                     ValidateLifetime = false,
                     ValidIssuer = configuration["JWT_TOKEN_ISSUER"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"]))
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"])),
+                    
                 };
+                if (!string.IsNullOrWhiteSpace(hubPath))
+                {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                    
+                            // If the request is for our hub...
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments(hubPath))
+                            {
+                                // Read the token out of the query string
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                }
             });
 
             return services;
