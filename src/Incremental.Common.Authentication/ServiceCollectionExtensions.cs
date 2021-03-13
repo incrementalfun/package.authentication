@@ -19,7 +19,7 @@ namespace Incremental.Common.Authentication
         /// <param name="configuration"></param>
         /// <param name="hubPath"></param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration, string hubPath = "")
+        public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration, string? hubPath = default)
         {
             services.AddAuthentication(options =>
             {
@@ -69,7 +69,7 @@ namespace Incremental.Common.Authentication
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultAuthorization(this IServiceCollection services)
+        private static IServiceCollection AddDefaultAuthorization(this IServiceCollection services)
         {
             services.AddAuthorization(options =>
             {

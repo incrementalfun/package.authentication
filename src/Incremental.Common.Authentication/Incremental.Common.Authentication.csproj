@@ -11,6 +11,7 @@
         <PackageProjectUrl>https://github.com/incrementalfun/package.authentication</PackageProjectUrl>
         <RepositoryUrl>https://github.com/incrementalfun/package.authentication</RepositoryUrl>
         <Copyright>Copyright © Lucas Maximiliano Marino 2021</Copyright>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
