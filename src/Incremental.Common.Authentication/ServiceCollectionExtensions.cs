@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -55,8 +56,8 @@ namespace Incremental.Common.Authentication
                     ValidateAudience = false,
                     ValidateLifetime = false,
                     ValidIssuer = configuration["JWT_TOKEN_ISSUER"],
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"])),
+                    ValidateIssuerSigningKey = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production",
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"]))
                 };
                 if (!string.IsNullOrWhiteSpace(hubPath))
                 {
