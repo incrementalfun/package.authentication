@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Configuration.Authentication", "Incremental.Common.Configuration.Authentication\Incremental.Common.Configuration.Authentication.csproj", "{4EAE873D-9067-42D3-A30C-CEDC0F13F205}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication", "Incremental.Common.Authentication\Incremental.Common.Authentication.csproj", "{4EAE873D-9067-42D3-A30C-CEDC0F13F205}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Incremental.Common.Configuration.Authentication
+namespace Incremental.Common.Authentication
 {
     /// <summary>
     /// Common claims for incremental.space

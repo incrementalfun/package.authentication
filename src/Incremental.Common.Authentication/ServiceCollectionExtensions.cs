@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Incremental.Common.Configuration.Authentication
+namespace Incremental.Common.Authentication
 {
     /// <summary>
     /// Extensions.

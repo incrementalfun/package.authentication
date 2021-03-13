@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.IdentityModel.JsonWebTokens;
 
-namespace Incremental.Common.Configuration.Authentication
+namespace Incremental.Common.Authentication
 {
     /// <summary>
     /// Extension methods to simplify claims usage.
