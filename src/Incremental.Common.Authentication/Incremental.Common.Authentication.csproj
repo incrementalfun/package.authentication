@@ -2,11 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <PackageVersion>0.5.1</PackageVersion>
-        <PackageId>Incremental.Common.Configuration.Authentication</PackageId>
-        <Title>Common Authentication Resources</Title>
+        <Title>Incremental.Common.Authentication</Title>
+        <Description>Common authentication resources.</Description>
         <Authors>Lucas Maximiliano Marino</Authors>
         <PackageProjectUrl>https://github.com/incrementalfun/package.authentication</PackageProjectUrl>
         <RepositoryUrl>https://github.com/incrementalfun/package.authentication</RepositoryUrl>
