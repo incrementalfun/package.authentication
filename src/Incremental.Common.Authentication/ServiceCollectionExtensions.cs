@@ -12,6 +12,16 @@ namespace Incremental.Common.Authentication
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+        private static IServiceCollection AddCommonAuthentication(this IServiceCollection services, IConfiguration configuration,
+            string? hub = default)
+        {
+            services.AddDefaultAuthentication(configuration, hub);
+
+            services.AddDefaultAuthorization();
+
+            return services;
+        }
+
         /// <summary>
         /// Configures default authentication resources.
         /// </summary>
@@ -19,7 +29,8 @@ namespace Incremental.Common.Authentication
         /// <param name="configuration"></param>
         /// <param name="hubPath"></param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration, string? hubPath = default)
+        private static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration,
+            string? hubPath = default)
         {
             services.AddAuthentication(options =>
             {
@@ -38,7 +49,6 @@ namespace Incremental.Common.Authentication
                     ValidIssuer = configuration["JWT_TOKEN_ISSUER"],
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"])),
-                    
                 };
                 if (!string.IsNullOrWhiteSpace(hubPath))
                 {
@@ -47,7 +57,7 @@ namespace Incremental.Common.Authentication
                         OnMessageReceived = context =>
                         {
                             var accessToken = context.Request.Query["access_token"];
-                    
+
                             // If the request is for our hub...
                             var path = context.HttpContext.Request.Path;
                             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments(hubPath))
@@ -55,6 +65,7 @@ namespace Incremental.Common.Authentication
                                 // Read the token out of the query string
                                 context.Token = accessToken;
                             }
+
                             return Task.CompletedTask;
                         }
                     };
@@ -78,7 +89,7 @@ namespace Incremental.Common.Authentication
                         IncrementalClaims.Scope(IncrementalScopes.Core).Type,
                         IncrementalClaims.Scope(IncrementalScopes.Core).Value)
                 );
-                
+
                 options.AddPolicy(IncrementalPolicies.Scope.Extension, policy =>
                     policy.RequireClaim(
                         IncrementalClaims.Scope(IncrementalScopes.Extension).Type,
