@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -12,9 +13,16 @@ namespace Incremental.Common.Authentication
     /// </summary>
     public static class ServiceCollectionExtensions
     {
-        private static IServiceCollection AddCommonAuthentication(this IServiceCollection services, IConfiguration configuration,
+        public static IServiceCollection AddCommonCors(this IServiceCollection services)
+        {
+            return services.AddCors();
+        }
+        
+        public static IServiceCollection AddCommonAuthentication(this IServiceCollection services, IConfiguration configuration,
             string? hub = default)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             services.AddDefaultAuthentication(configuration, hub);
 
             services.AddDefaultAuthorization();
