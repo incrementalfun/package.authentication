@@ -48,6 +48,8 @@ namespace Incremental.Common.Authentication
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
+                var isProduction = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production";
+                
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = true;
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -56,8 +58,8 @@ namespace Incremental.Common.Authentication
                     ValidateAudience = false,
                     ValidateLifetime = false,
                     ValidIssuer = configuration["JWT_TOKEN_ISSUER"],
-                    ValidateIssuerSigningKey = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production",
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"]))
+                    ValidateIssuerSigningKey = isProduction,
+                    IssuerSigningKey = isProduction ? new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"])) : default
                 };
                 if (!string.IsNullOrWhiteSpace(hubPath))
                 {
