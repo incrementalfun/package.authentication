@@ -37,7 +37,7 @@ namespace Incremental.Common.Authentication
         /// <param name="services"></param>
         /// <param name="configuration"></param>
         /// <param name="hubPath"></param>
-        /// <returns></returns>
+        /// <returns><see cref="IServiceCollection"/></returns>
         private static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration,
             string? hubPath = default)
         {
