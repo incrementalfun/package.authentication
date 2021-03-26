@@ -15,8 +15,8 @@ env:
   # GitHub Packages Feed settings
   GITHUB_FEED: https://nuget.pkg.github.com/incrementalfun/
   GITHUB_USER: incrementalbot
-  GITHUB_TOKEN: ${{ secrets.GPM_TOKEN }}
-  NUGET_AUTH_TOKEN: ${{ secrets.GPM_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     runs-on: ${{ matrix.os }}
