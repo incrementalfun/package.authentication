@@ -27,7 +27,7 @@ namespace Incremental.Common.Authentication
         };
         
         private static KeyValuePair<string, string>[] Development => new[]{
-            new KeyValuePair<string, string>("JWT_TOKEN_ISSUER", "https://localhost:5003"),
+            new KeyValuePair<string, string>("JWT_TOKEN_ISSUER", "https://localhost:5000"),
             new KeyValuePair<string, string>("SPA_BASE_URI", "http://localhost:3000")
         };
     }
