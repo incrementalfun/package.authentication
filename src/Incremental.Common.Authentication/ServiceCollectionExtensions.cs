@@ -2,7 +2,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -14,11 +16,25 @@ namespace Incremental.Common.Authentication
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+        public static IServiceCollection AddCommonDataProtection(this IServiceCollection services, IConfiguration configuration)
+        {
+            var environment = $"{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}";
+
+            if (environment == "Production")
+            {
+                services.AddDataProtection()
+                    .PersistKeysToAzureBlobStorage(new Uri(configuration["AZURE_BLOB_STORAGE_URI"]), new DefaultAzureCredential())
+                    .ProtectKeysWithAzureKeyVault(new Uri(configuration["AZURE_KEY_VAULT_URI"]), new DefaultAzureCredential());
+            }
+
+            return services;
+        }
+
         public static IServiceCollection AddCommonCors(this IServiceCollection services)
         {
             return services.AddCors();
         }
-        
+
         public static IServiceCollection AddCommonAuthentication(this IServiceCollection services, IConfiguration configuration,
             string? hub = default)
         {
