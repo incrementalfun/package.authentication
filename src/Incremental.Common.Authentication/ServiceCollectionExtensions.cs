@@ -120,6 +120,12 @@ namespace Incremental.Common.Authentication
                         IncrementalClaims.Scope(IncrementalScopes.Extension).Type,
                         IncrementalClaims.Scope(IncrementalScopes.Extension).Value)
                 );
+                
+                options.AddPolicy(IncrementalPolicies.Scope.Extension, policy =>
+                    policy.RequireClaim(
+                        IncrementalClaims.Scope(IncrementalScopes.Service).Type,
+                        IncrementalClaims.Scope(IncrementalScopes.Service).Value)
+                );
             });
 
             return services;

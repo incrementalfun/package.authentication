@@ -19,6 +19,12 @@
             /// Extension scope policy name.
             /// </summary>
             public const string Extension = "Scope:Extension";
+
+            /// <summary>
+            /// Service scope policy name.
+            /// </summary>
+            public const string Service = "Scope:Service";
+            
         }
     }
 }
