@@ -1,7 +1,7 @@
 ﻿namespace Incremental.Common.Authentication
 {
     /// <summary>
-    /// Common policies for incremental.space.
+    /// Common policies for Incremental
     /// </summary>
     public static class IncrementalPolicies
     {
