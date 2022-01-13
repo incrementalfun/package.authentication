@@ -1,9 +1,9 @@
 ﻿namespace Incremental.Common.Authentication
 {
     /// <summary>
-    /// Common scopes for incremental.space
+    /// Common scopes for Incremental
     /// </summary>
-    public struct IncrementalScopes
+    public struct Scopes
     {
         /// <summary>
         /// Core scope.
