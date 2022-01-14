@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -16,6 +18,15 @@ namespace Incremental.Common.Authentication;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers Data Protection mechanisms in a Azure Blob Storage mixed with Azure Key Vault.
+    /// <remarks>
+    /// Must specify AZURE_BLOB_STORAGE_URI and AZURE_KEY_VAULT_URI in configuration.
+    /// </remarks>
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
     public static IServiceCollection AddCommonDataProtection(this IServiceCollection services, IConfiguration configuration)
     {
         var environment = $"{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}";
@@ -29,6 +40,28 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+    
+    /// <summary>
+    /// Registers Data Protection mechanisms in a DataProtectionKeyContext.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <typeparam name="TContext"></typeparam>
+    /// <returns></returns>
+    public static IServiceCollection AddCommonDataProtection<TContext>(this IServiceCollection services, IConfiguration configuration) 
+        where TContext : DbContext, IDataProtectionKeyContext
+    {
+        var environment = $"{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}";
+
+        if (environment == "Production")
+        {
+            services.AddDataProtection()
+                .PersistKeysToDbContext<TContext>();
+        }
+
+        return services;
+    }
+
 
     public static IServiceCollection AddCommonCors(this IServiceCollection services)
     {
