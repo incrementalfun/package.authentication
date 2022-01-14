@@ -1,34 +1,33 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 
-namespace Incremental.Common.Authentication
+namespace Incremental.Common.Authentication;
+
+/// <summary>
+/// Application builder extensions for authentication.
+/// </summary>
+public static class ApplicationBuilderExtensions
 {
-    /// <summary>
-    /// Application builder extensions for authentication.
-    /// </summary>
-    public static class ApplicationBuilderExtensions
+    public static IApplicationBuilder UseCommonCors(this IApplicationBuilder app, IConfiguration configuration)
     {
-        public static IApplicationBuilder UseCommonCors(this IApplicationBuilder app, IConfiguration configuration)
+        app.UseCors(options =>
         {
-            app.UseCors(options =>
-            {
-                options.WithOrigins(configuration["SPA_BASE_URI"])
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials()
-                    .WithExposedHeaders("x-pagination");
-            });
+            options.WithOrigins(configuration["SPA_BASE_URI"])
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .WithExposedHeaders("x-pagination", "token-expired");
+        });
 
-            return app;
-        }
+        return app;
+    }
 
-        public static IApplicationBuilder UseCommonAuthentication(this IApplicationBuilder app)
-        {
-            app.UseAuthentication();
+    public static IApplicationBuilder UseCommonAuthentication(this IApplicationBuilder app)
+    {
+        app.UseAuthentication();
 
-            app.UseAuthorization();
+        app.UseAuthorization();
 
-            return app;
-        }
+        return app;
     }
 }

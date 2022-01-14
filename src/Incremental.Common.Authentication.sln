@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication", "Incremental.Common.Authentication\Incremental.Common.Authentication.csproj", "{4EAE873D-9067-42D3-A30C-CEDC0F13F205}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication.Policies", "Incremental.Common.Authentication.Policies\Incremental.Common.Authentication.Policies.csproj", "{5EC2F573-259C-48B0-A99C-2F16EEFBE619}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication.Configuration", "Incremental.Common.Authentication.Configuration\Incremental.Common.Authentication.Configuration.csproj", "{5EC2F573-259C-48B0-A99C-2F16EEFBE619}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication.Jwt", "Incremental.Common.Authentication.Jwt\Incremental.Common.Authentication.Jwt.csproj", "{EDD1B0BD-AC0B-4E51-AB7A-31FCCB87380E}"
 EndProject
