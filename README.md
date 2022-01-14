@@ -2,13 +2,12 @@
 
 Common authentication and JWT utilities.
 
-There are 3 packages in this repository:
+There are 2 packages in this repository:
 
 - Incremental.Common.Authentication
 - Incremental.Common.Authentication.Jwt
-- Incremental.Common.Authentication.Configuration
 
-The packages `Incremental.Common.Authentication` & `Incremental.Common.Authentication.Jwt` are ready for general usage on any project, but `Incremental.Common.Authentication.Configuration` is meant only for Incremental.
+The packages `Incremental.Common.Authentication` & `Incremental.Common.Authentication.Jwt` are ready for general usage on any project.
 
 ## License
 
