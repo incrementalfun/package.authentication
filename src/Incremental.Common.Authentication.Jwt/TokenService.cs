@@ -62,7 +62,7 @@ public class TokenService<TUser> : ITokenService where TUser : IdentityUser
         }
     }
     
-    public async Task<JwtToken?> RefreshToken(JwtToken token, Claim[]? additionalClaims = default)
+    public async Task<JwtToken?> RefreshToken(JwtToken token)
     {
         var validationParameters = _jwtBearerOptions.TokenValidationParameters;
         validationParameters.ValidateLifetime = false;
@@ -95,7 +95,9 @@ public class TokenService<TUser> : ITokenService where TUser : IdentityUser
             return default;
         }
 
-        var refreshedToken = await GenerateToken(user.Id, jwtSecurityToken.Audiences.FirstOrDefault());
+        var additionalClaims = await RetrieveAdditionalClaimsAsync();
+        
+        var refreshedToken = await GenerateToken(user.Id, jwtSecurityToken.Audiences.FirstOrDefault(), additionalClaims);
         
         await RemoveRefreshTokenAsync();
 
@@ -110,6 +112,15 @@ public class TokenService<TUser> : ITokenService where TUser : IdentityUser
         async Task RemoveRefreshTokenAsync()
         {
             await _userManager.RemoveAuthenticationTokenAsync(user, APPLICATION_LOGIN_PROVIDER, RefreshToken(token.RefreshToken));
+        }
+
+        async Task<Claim[]?> RetrieveAdditionalClaimsAsync()
+        {
+            var defaultClaims = await _userManager.GetClaimsAsync(user) as List<Claim>;
+            
+            var defaultClaimTypes = (defaultClaims ?? new List<Claim>()).Select(c => c.Type);
+
+            return jwtSecurityToken.Claims.Where(claim => !defaultClaimTypes.Contains(claim.Type)) as Claim[];
         }
     }
     

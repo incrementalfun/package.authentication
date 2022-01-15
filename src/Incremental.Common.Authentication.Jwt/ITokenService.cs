@@ -6,5 +6,5 @@ public interface ITokenService
 {
     Task<JwtToken> GenerateToken(string userId, string? audience = default, Claim[]? additionalClaims = default);
     
-    Task<JwtToken?> RefreshToken(JwtToken token, Claim[]? additionalClaims = default);
+    Task<JwtToken?> RefreshToken(JwtToken token);
 }
