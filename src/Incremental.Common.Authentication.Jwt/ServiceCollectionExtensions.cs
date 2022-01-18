@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Incremental.Common.Authentication.Jwt;
@@ -9,13 +10,18 @@ namespace Incremental.Common.Authentication.Jwt;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers an instance of <see cref="TokenService{TUser}"/>.
+    /// Registers an instance of <see cref="TokenService{TUser,TContext}"/>.
     /// </summary>
     /// <param name="services"></param>
     /// <typeparam name="TUser"></typeparam>
+    /// <typeparam name="TContext"></typeparam>
     /// <returns></returns>
-    public static IServiceCollection AddJwtTokenService<TUser>(this IServiceCollection services) where TUser : IdentityUser
+    public static IServiceCollection AddJwtTokenService<TUser, TContext>(this IServiceCollection services) where TUser : IdentityUser where TContext : IdentityDbContext<TUser>
     {
-        return services.AddScoped<ITokenService, TokenService<TUser>>();
+        services.AddScoped<ITokenService, TokenService<TUser, TContext>>();
+
+        services.AddOptions<TokenServiceOptions>(TokenServiceOptions.TokenService);
+        
+        return services;
     }
 }
