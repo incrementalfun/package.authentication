@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Incremental.Common.Authentication.Jwt;
 
@@ -21,6 +22,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenService, TokenService<TUser, TContext>>();
 
         services.AddOptions<TokenServiceOptions>(TokenServiceOptions.TokenService);
+
+        services.AddSingleton<IPostConfigureOptions<TokenServiceOptions>, TokenServiceOptionsPostConfigureOptions>();
         
         return services;
     }
