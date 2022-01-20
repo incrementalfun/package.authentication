@@ -62,12 +62,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-
-    public static IServiceCollection AddCommonCors(this IServiceCollection services)
-    {
-        return services.AddCors();
-    }
-
     public static IServiceCollection AddCommonAuthentication(this IServiceCollection services, IConfiguration configuration,
         string? hub = default)
     {
@@ -80,13 +74,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Configures default authentication resources.
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <param name="hubPath"></param>
-    /// <returns><see cref="IServiceCollection"/></returns>
     private static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration,
         string? hubPath = default)
     {
@@ -111,37 +98,46 @@ public static class ServiceCollectionExtensions
                 ValidIssuer = configuration["JWT_TOKEN_ISSUER"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT_TOKEN_SECURITY_KEY"]))
             };
-            if (!string.IsNullOrWhiteSpace(hubPath))
-            {
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        var accessToken = context.Request.Query["access_token"];
-
-                        // If the request is for our hub...
-                        var path = context.HttpContext.Request.Path;
-                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments(hubPath))
-                        {
-                            // Read the token out of the query string
-                            context.Token = accessToken;
-                        }
-
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = context =>
-                    {
-                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                        {
-                            context.Response.Headers.Add("Token-Expired", "true");
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            }
+            
+            options.Events = GenerateJwtBearerEvents(hubPath);
         });
 
         return services;
+    }
+
+    private static JwtBearerEvents GenerateJwtBearerEvents(string? hubPath)
+    {
+        var events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                {
+                    context.Response.Headers.Add("Token-Expired", "true");
+                }
+                return Task.CompletedTask;
+            }
+        };
+
+        if (!string.IsNullOrWhiteSpace(hubPath))
+        {
+            events.OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                // If the request is for our hub...
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments(hubPath))
+                {
+                    // Read the token out of the query string
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            };
+        }
+
+        return events;
     }
 
     /// <summary>
