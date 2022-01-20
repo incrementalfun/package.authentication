@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -23,7 +24,8 @@ public class TokenService<TUser, TContext> : ITokenService
     private readonly SigningCredentials _signingCredentials;
     private readonly string _issuer;
 
-    public TokenService(ILogger<TokenService<TUser, TContext>> logger, UserManager<TUser> userManager, TContext context, IOptions<JwtBearerOptions> jwtBearerOptions, IOptions<TokenServiceOptions> tokenServiceOptions)
+    public TokenService(ILogger<TokenService<TUser, TContext>> logger, UserManager<TUser> userManager, TContext context,
+        IOptions<JwtBearerOptions> jwtBearerOptions, IOptions<TokenServiceOptions> tokenServiceOptions)
     {
         _logger = logger;
         _userManager = userManager;
@@ -32,25 +34,25 @@ public class TokenService<TUser, TContext> : ITokenService
         _tokenServiceOptions = tokenServiceOptions.Value;
 
         _securityTokenHandler = new JwtSecurityTokenHandler();
-        _signingCredentials = new SigningCredentials(_jwtBearerOptions.TokenValidationParameters.IssuerSigningKey, SecurityAlgorithms.HmacSha256);
-        _issuer = _jwtBearerOptions.TokenValidationParameters.ValidIssuer;
+        var securityKey = Encoding.UTF8.GetBytes(_tokenServiceOptions.TokenSecurityKey ??
+                                                 throw new ArgumentNullException(nameof(_tokenServiceOptions.TokenSecurityKey)));
+        _signingCredentials = new SigningCredentials(new SymmetricSecurityKey(securityKey), SecurityAlgorithms.HmacSha256);
+        _issuer = _tokenServiceOptions.TokenIssuer ?? throw new ArgumentNullException(nameof(_tokenServiceOptions.TokenIssuer));
     }
 
-    public async Task<JwtToken> GenerateToken(string userId, string? audience = default, Claim[]? additionalClaims = default)
+    public async Task<JwtToken> GenerateToken(string userId, IEnumerable<string>? audiences = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
         var claims = await _userManager.GetClaimsAsync(user) as List<Claim>;
 
-        if (additionalClaims is not null)
+        if (audiences is not null)
         {
-            claims?.AddRange(additionalClaims);
+            claims?.AddRange(audiences.Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience)));
         }
-
-        audience ??= _jwtBearerOptions.Audience;
 
         var token = GenerateJwtSecurityToken();
         var refreshToken = Guid.NewGuid();
-        
+
         await StoreRefreshTokenAsync(refreshToken);
 
         return new JwtToken
@@ -58,17 +60,16 @@ public class TokenService<TUser, TContext> : ITokenService
             Token = new JwtSecurityTokenHandler().WriteToken(token),
             RefreshToken = refreshToken
         };
-        
+
         JwtSecurityToken GenerateJwtSecurityToken()
         {
             return new JwtSecurityToken(
-                issuer: _issuer, 
-                audience: audience, 
+                issuer: _issuer,
                 claims: claims,
-                notBefore: DateTime.UtcNow, 
-                expires: DateTime.UtcNow.AddMinutes(_tokenServiceOptions.TokenLifetime), 
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddMinutes(_tokenServiceOptions.TokenLifetime),
                 signingCredentials: _signingCredentials);
-        }
+        };
 
         async Task StoreRefreshTokenAsync(Guid guid)
         {
@@ -79,15 +80,18 @@ public class TokenService<TUser, TContext> : ITokenService
                 tokenValue: DateTime.UtcNow.AddMinutes(_tokenServiceOptions.RefreshTokenLifetime).Ticks.ToString());
         }
     }
-    
+
     public async Task<JwtToken?> RefreshToken(JwtToken token)
     {
         var validationParameters = _jwtBearerOptions.TokenValidationParameters;
         validationParameters.ValidateLifetime = false;
+        validationParameters.ValidateAudience = false;
+        validationParameters.ValidIssuer = _issuer;
+        validationParameters.IssuerSigningKey = _signingCredentials.Key;
 
         var principal = _securityTokenHandler.ValidateToken(token.Token, validationParameters, out var securityToken);
 
-        if (securityToken is not JwtSecurityToken jwtSecurityToken || jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256))
+        if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256))
         {
             return default;
         }
@@ -106,39 +110,30 @@ public class TokenService<TUser, TContext> : ITokenService
 
         var refreshTokenLifetime = await RetrieveRefreshTokenLifetimeAsync();
 
-        if (refreshTokenLifetime?.CompareTo(DateTime.UtcNow) >= 0)
+        if (refreshTokenLifetime?.CompareTo(DateTime.UtcNow) <= 0)
         {
             await RemoveRefreshTokenAsync();
 
             return default;
         }
 
-        var additionalClaims = await RetrieveAdditionalClaimsAsync();
-        
-        var refreshedToken = await GenerateToken(user.Id, jwtSecurityToken.Audiences.FirstOrDefault(), additionalClaims);
-        
+        var refreshedToken = await GenerateToken(user.Id, jwtSecurityToken.Audiences);
+
         await RemoveRefreshTokenAsync();
 
         return refreshedToken;
 
         async Task<DateTime?> RetrieveRefreshTokenLifetimeAsync()
         {
-            var information = await _userManager.GetAuthenticationTokenAsync(user, _tokenServiceOptions.ApplicationLoginProvider, EncodeRefreshToken(token.RefreshToken));
+            var information = await _userManager.GetAuthenticationTokenAsync(user, _tokenServiceOptions.ApplicationLoginProvider,
+                EncodeRefreshToken(token.RefreshToken));
             return information is null ? default(DateTime?) : new DateTime(Convert.ToInt64(information));
         }
 
         async Task RemoveRefreshTokenAsync()
         {
-            await _userManager.RemoveAuthenticationTokenAsync(user, _tokenServiceOptions.ApplicationLoginProvider, EncodeRefreshToken(token.RefreshToken));
-        }
-
-        async Task<Claim[]?> RetrieveAdditionalClaimsAsync()
-        {
-            var defaultClaims = await _userManager.GetClaimsAsync(user) as List<Claim>;
-            
-            var defaultClaimTypes = (defaultClaims ?? new List<Claim>()).Select(c => c.Type);
-
-            return jwtSecurityToken.Claims.Where(claim => !defaultClaimTypes.Contains(claim.Type)) as Claim[];
+            await _userManager.RemoveAuthenticationTokenAsync(user, _tokenServiceOptions.ApplicationLoginProvider,
+                EncodeRefreshToken(token.RefreshToken));
         }
     }
 
