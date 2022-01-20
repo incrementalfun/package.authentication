@@ -34,4 +34,22 @@ public class TokenServiceOptions
     /// </remarks>
     /// </summary>
     public int RefreshTokenLifetime { get; set; }
+    
+    /// <summary>
+    /// Issuer of the JWT token.
+    /// <remarks>
+    /// If using the Incremental.Common.Authentication package there is no need to fill this property.
+    /// It will be sourced automatically.
+    /// </remarks>
+    /// </summary>
+    public string? TokenIssuer { get; set; }
+    
+    /// <summary>
+    /// Security key to handle token signing.
+    /// <remarks>
+    /// If using the Incremental.Common.Authentication package there is no need to fill this property.
+    /// It will be sourced automatically.
+    /// </remarks>
+    /// </summary>
+    public string? TokenSecurityKey { get; set; }
 }
