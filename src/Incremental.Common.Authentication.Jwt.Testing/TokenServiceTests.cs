@@ -77,7 +77,7 @@ public class TokenServiceTests
     [Test]
     public async Task TokenService_Generates_A_Token()
     {
-        var token = await _tokenService!.GenerateToken(_testUser!.Id);
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id);
         
         Assert.IsNotNull(token);
         Assert.IsNotNull(token);
@@ -94,7 +94,7 @@ public class TokenServiceTests
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(OptionsTokenSecurityKey))
         };
 
-        var token = await _tokenService!.GenerateToken(_testUser!.Id);
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id);
 
         new JwtSecurityTokenHandler().ValidateToken(token.Token, validationParameters, out var securityToken);
         
@@ -117,7 +117,7 @@ public class TokenServiceTests
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(OptionsTokenSecurityKey))
         };
 
-        var token = await _tokenService!.GenerateToken(_testUser!.Id, audience);
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id, audience);
 
         new JwtSecurityTokenHandler().ValidateToken(token.Token, validationParameters, out var securityToken);
 
@@ -127,7 +127,7 @@ public class TokenServiceTests
     [Test]
     public async Task TokenService_Generates_A_Refresh_Token()
     {
-        var token = await _tokenService!.GenerateToken(_testUser!.Id);
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id);
         
         Assert.IsNotNull(token.RefreshToken);
         Assert.That(token.RefreshToken != default);
@@ -136,9 +136,9 @@ public class TokenServiceTests
     [Test]
     public async Task TokenService_Can_Refresh_A_Token()
     {
-        var token = await _tokenService!.GenerateToken(_testUser!.Id);
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id);
 
-        var refreshedToken = await _tokenService!.RefreshToken(token);
+        var refreshedToken = await _tokenService!.RefreshTokenAsync(token);
         
         Assert.IsNotNull(refreshedToken);
         Assert.IsNotEmpty(refreshedToken?.Token);
@@ -152,7 +152,7 @@ public class TokenServiceTests
         
         Assert.NotZero(refreshTokensCount);
 
-        await _tokenService!.RevokeRefreshTokens(_testUser!.Id);
+        await _tokenService!.RevokeRefreshTokensAsync(_testUser!.Id);
 
         refreshTokensCount = await GetRefreshTokensCountAsync();
         
@@ -171,17 +171,17 @@ public class TokenServiceTests
     [Test]
     public async Task TokenService_Will_Not_Refresh_A_Revoked_Token()
     {
-        var token = await _tokenService!.GenerateToken(_testUser!.Id);
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id);
 
         var refreshTokensCount = await GetRefreshTokensCountAsync();
         Assert.NotZero(refreshTokensCount);
 
-        await _tokenService!.RevokeRefreshTokens(_testUser!.Id);
+        await _tokenService!.RevokeRefreshTokensAsync(_testUser!.Id);
 
         refreshTokensCount = await GetRefreshTokensCountAsync();
         Assert.Zero(refreshTokensCount);
         
-        var refreshedToken = await _tokenService!.RefreshToken(token);
+        var refreshedToken = await _tokenService!.RefreshTokenAsync(token);
         
         Assert.IsNull(refreshedToken);
 

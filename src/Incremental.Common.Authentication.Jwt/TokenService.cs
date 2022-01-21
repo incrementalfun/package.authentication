@@ -40,7 +40,7 @@ public class TokenService<TUser, TContext> : ITokenService
         _issuer = _tokenServiceOptions.TokenIssuer ?? throw new ArgumentNullException(nameof(_tokenServiceOptions.TokenIssuer));
     }
 
-    public async Task<JwtToken> GenerateToken(string? userId, IEnumerable<string>? audiences = default)
+    public async Task<JwtToken> GenerateTokenAsync(string? userId, IEnumerable<string>? audiences = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
         var claims = await _userManager.GetClaimsAsync(user) as List<Claim>;
@@ -81,12 +81,12 @@ public class TokenService<TUser, TContext> : ITokenService
         }
     }
 
-    public Task<JwtToken> GenerateToken(string userId, string audience)
+    public Task<JwtToken> GenerateTokenAsync(string userId, string audience)
     {
-        return GenerateToken(userId, new[] { audience });
+        return GenerateTokenAsync(userId, new[] { audience });
     }
 
-    public async Task<JwtToken?> RefreshToken(JwtToken token)
+    public async Task<JwtToken?> RefreshTokenAsync(JwtToken token)
     {
         var validationParameters = _jwtBearerOptions.TokenValidationParameters;
         validationParameters.ValidateLifetime = false;
@@ -127,7 +127,7 @@ public class TokenService<TUser, TContext> : ITokenService
             return default;
         }
 
-        var refreshedToken = await GenerateToken(user.Id, jwtSecurityToken.Audiences);
+        var refreshedToken = await GenerateTokenAsync(user.Id, jwtSecurityToken.Audiences);
 
         await RemoveRefreshTokenAsync();
 
@@ -147,7 +147,7 @@ public class TokenService<TUser, TContext> : ITokenService
         }
     }
 
-    public async Task RevokeRefreshTokens(string userId)
+    public async Task RevokeRefreshTokensAsync(string userId)
     {
         var refreshTokens = await _context.UserTokens
             .Where(token => token.UserId == userId)
