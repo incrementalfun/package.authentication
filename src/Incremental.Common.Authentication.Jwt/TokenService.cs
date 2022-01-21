@@ -42,19 +42,24 @@ public class TokenService<TUser, TContext> : ITokenService
 
     public async Task<JwtToken> GenerateTokenAsync(string? userId, IEnumerable<string>? audiences = default)
     {
+        _logger.LogInformation("Start to generate JWT token for user with id {UserId}", userId);
+        
         var user = await _userManager.FindByIdAsync(userId);
         var claims = await _userManager.GetClaimsAsync(user) as List<Claim>;
 
         if (audiences is not null)
         {
+            _logger.LogInformation("JWT token will have the following audiences: {@Audiences}", audiences);
+            
             claims?.AddRange(audiences.Select(audience => new Claim(JwtRegisteredClaimNames.Aud, audience)));
         }
 
         var token = GenerateJwtSecurityToken();
+        
         var refreshToken = Guid.NewGuid();
 
         await StoreRefreshTokenAsync(refreshToken);
-
+        
         return new JwtToken
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
@@ -63,12 +68,16 @@ public class TokenService<TUser, TContext> : ITokenService
 
         JwtSecurityToken GenerateJwtSecurityToken()
         {
-            return new JwtSecurityToken(
+            var generatedToken =  new JwtSecurityToken(
                 issuer: _issuer,
                 claims: claims,
                 notBefore: DateTime.UtcNow,
                 expires: DateTime.UtcNow.Add(_tokenServiceOptions.TokenLifetime),
                 signingCredentials: _signingCredentials);
+            
+            _logger.LogInformation("Generated JWT security token");
+
+            return generatedToken;
         };
 
         async Task StoreRefreshTokenAsync(Guid guid)
@@ -78,6 +87,8 @@ public class TokenService<TUser, TContext> : ITokenService
                 loginProvider: _tokenServiceOptions.ApplicationLoginProvider,
                 tokenName: EncodeRefreshToken(guid),
                 tokenValue: DateTime.UtcNow.Add(_tokenServiceOptions.RefreshTokenLifetime).Ticks.ToString());
+            
+            _logger.LogInformation("Stored refresh token {RefreshToken}", refreshToken);
         }
     }
 
@@ -88,6 +99,8 @@ public class TokenService<TUser, TContext> : ITokenService
 
     public async Task<JwtToken?> RefreshTokenAsync(JwtToken token)
     {
+        _logger.LogInformation("Start to refresh JWT token with refresh token {RefreshToken}", token.RefreshToken);
+
         var validationParameters = _jwtBearerOptions.TokenValidationParameters;
         validationParameters.ValidateLifetime = false;
         validationParameters.ValidateAudience = false;
@@ -98,11 +111,15 @@ public class TokenService<TUser, TContext> : ITokenService
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256))
         {
+            _logger.LogInformation("JWT security token was invalid, refresh aborted");
+
             return default;
         }
 
         if (principal is null)
         {
+            _logger.LogInformation("Principal was invalid, refresh aborted");
+
             return default;
         }
 
@@ -110,6 +127,8 @@ public class TokenService<TUser, TContext> : ITokenService
 
         if (user is null)
         {
+            _logger.LogWarning("User was not found will trying to refresh a JWT token, refresh aborted");
+
             return default;
         }
 
@@ -117,6 +136,8 @@ public class TokenService<TUser, TContext> : ITokenService
 
         if (refreshTokenLifetime is null)
         {
+            _logger.LogInformation("The refresh token was not found, refresh aborted");
+
             return default;
         }
         
@@ -124,12 +145,18 @@ public class TokenService<TUser, TContext> : ITokenService
         {
             await RemoveRefreshTokenAsync();
 
+            _logger.LogInformation("The lifetime of the refresh token is expired, refresh aborted and token removed");
+
             return default;
         }
 
         var refreshedToken = await GenerateTokenAsync(user.Id, jwtSecurityToken.Audiences);
 
+        _logger.LogInformation("JWT token refresh was successful");
+        
         await RemoveRefreshTokenAsync();
+
+        _logger.LogInformation("Refresh token removed after successful usage");
 
         return refreshedToken;
 
@@ -149,6 +176,8 @@ public class TokenService<TUser, TContext> : ITokenService
 
     public async Task RevokeRefreshTokensAsync(string userId)
     {
+        _logger.LogInformation("Start to revoked all refresh tokens for user with id {UserId}", userId);
+
         var refreshTokens = await _context.UserTokens
             .Where(token => token.UserId == userId)
             .Where(token => token.LoginProvider == _tokenServiceOptions.ApplicationLoginProvider)
@@ -158,6 +187,8 @@ public class TokenService<TUser, TContext> : ITokenService
         _context.RemoveRange(refreshTokens);
 
         await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Revoked all refresh tokens for user with id {UserId}", userId);
     }
 
     private static string EncodeRefreshToken(Guid refreshTokenId) => $"refresh_token:{refreshTokenId}";
