@@ -40,7 +40,7 @@ public class TokenService<TUser, TContext> : ITokenService
         _issuer = _tokenServiceOptions.TokenIssuer ?? throw new ArgumentNullException(nameof(_tokenServiceOptions.TokenIssuer));
     }
 
-    public async Task<JwtToken> GenerateToken(string userId, IEnumerable<string>? audiences = default)
+    public async Task<JwtToken> GenerateToken(string? userId, IEnumerable<string>? audiences = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
         var claims = await _userManager.GetClaimsAsync(user) as List<Claim>;
@@ -67,7 +67,7 @@ public class TokenService<TUser, TContext> : ITokenService
                 issuer: _issuer,
                 claims: claims,
                 notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddMinutes(_tokenServiceOptions.TokenLifetime),
+                expires: DateTime.UtcNow.Add(_tokenServiceOptions.TokenLifetime),
                 signingCredentials: _signingCredentials);
         };
 
@@ -77,8 +77,13 @@ public class TokenService<TUser, TContext> : ITokenService
                 user: user,
                 loginProvider: _tokenServiceOptions.ApplicationLoginProvider,
                 tokenName: EncodeRefreshToken(guid),
-                tokenValue: DateTime.UtcNow.AddMinutes(_tokenServiceOptions.RefreshTokenLifetime).Ticks.ToString());
+                tokenValue: DateTime.UtcNow.Add(_tokenServiceOptions.RefreshTokenLifetime).Ticks.ToString());
         }
+    }
+
+    public Task<JwtToken> GenerateToken(string userId, string audience)
+    {
+        return GenerateToken(userId, new[] { audience });
     }
 
     public async Task<JwtToken?> RefreshToken(JwtToken token)
@@ -110,7 +115,12 @@ public class TokenService<TUser, TContext> : ITokenService
 
         var refreshTokenLifetime = await RetrieveRefreshTokenLifetimeAsync();
 
-        if (refreshTokenLifetime?.CompareTo(DateTime.UtcNow) <= 0)
+        if (refreshTokenLifetime is null)
+        {
+            return default;
+        }
+        
+        if (refreshTokenLifetime.Value.CompareTo(DateTime.UtcNow) <= 0)
         {
             await RemoveRefreshTokenAsync();
 
