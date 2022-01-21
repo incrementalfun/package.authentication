@@ -7,8 +7,8 @@ public class TokenServiceOptions
     public TokenServiceOptions()
     {
         ApplicationLoginProvider = "application_identity";
-        RefreshTokenLifetime = 43200;
-        TokenLifetime = 5;
+        RefreshTokenLifetime = TimeSpan.FromDays(30);
+        TokenLifetime = TimeSpan.FromMinutes(5);
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class TokenServiceOptions
     /// Defaults to 5 minutes (5).
     /// </remarks>
     /// </summary>
-    public int TokenLifetime { get; set; }
+    public TimeSpan TokenLifetime { get; set; }
     
     /// <summary>
     /// Lifetime of the refresh token in minutes.
@@ -33,7 +33,7 @@ public class TokenServiceOptions
     /// Defaults to 30 days (43200).
     /// </remarks>
     /// </summary>
-    public int RefreshTokenLifetime { get; set; }
+    public TimeSpan RefreshTokenLifetime { get; set; }
     
     /// <summary>
     /// Issuer of the JWT token.
