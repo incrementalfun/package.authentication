@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authenti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication.Jwt", "Incremental.Common.Authentication.Jwt\Incremental.Common.Authentication.Jwt.csproj", "{EDD1B0BD-AC0B-4E51-AB7A-31FCCB87380E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication.Jwt.Testing", "Incremental.Common.Authentication.Jwt.Testing\Incremental.Common.Authentication.Jwt.Testing.csproj", "{631C7335-A71B-4F60-A80D-7054BA500821}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{EDD1B0BD-AC0B-4E51-AB7A-31FCCB87380E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDD1B0BD-AC0B-4E51-AB7A-31FCCB87380E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDD1B0BD-AC0B-4E51-AB7A-31FCCB87380E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{631C7335-A71B-4F60-A80D-7054BA500821}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{631C7335-A71B-4F60-A80D-7054BA500821}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{631C7335-A71B-4F60-A80D-7054BA500821}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{631C7335-A71B-4F60-A80D-7054BA500821}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
