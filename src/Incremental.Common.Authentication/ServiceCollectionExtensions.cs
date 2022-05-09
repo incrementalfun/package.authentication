@@ -62,12 +62,20 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    /// <summary>
+    /// Add common authentication services and configurations.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <param name="jwtOptionsAction"></param>
+    /// <param name="hub"></param>
+    /// <returns></returns>
     public static IServiceCollection AddCommonAuthentication(this IServiceCollection services, IConfiguration configuration,
-        string? hub = default)
+        Action<JwtBearerOptions>? jwtOptionsAction = default, string? hub = default)
     {
         JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-        services.AddDefaultAuthentication(configuration, hub);
+        services.AddDefaultAuthentication(configuration, jwtOptionsAction, hub);
 
         services.AddDefaultAuthorization();
 
@@ -75,14 +83,9 @@ public static class ServiceCollectionExtensions
     }
 
     private static IServiceCollection AddDefaultAuthentication(this IServiceCollection services, IConfiguration configuration,
-        string? hubPath = default)
+        Action<JwtBearerOptions>? jwtOptionsAction = default, string? hubPath = default)
     {
-        services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddJwtBearer(options =>
+        var defaultOptions = new Action<JwtBearerOptions>(options =>
         {
             options.SaveToken = true;
             options.RequireHttpsMetadata = true;
@@ -100,6 +103,17 @@ public static class ServiceCollectionExtensions
             };
             
             options.Events = GenerateJwtBearerEvents(hubPath);
+        });
+        
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(options =>
+        {
+            defaultOptions.Invoke(options);
+            jwtOptionsAction?.Invoke(options);
         });
 
         return services;
