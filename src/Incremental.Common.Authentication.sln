@@ -6,6 +6,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authenti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Incremental.Common.Authentication.Jwt.Testing", "Incremental.Common.Authentication.Jwt.Testing\Incremental.Common.Authentication.Jwt.Testing.csproj", "{631C7335-A71B-4F60-A80D-7054BA500821}"
 EndProject
+:wqProject("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".solution-files", ".solution-files", "{EF1177F4-D523-430B-96C4-036AC98BFD6F}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\workflows\package.yml = ..\.github\workflows\package.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
