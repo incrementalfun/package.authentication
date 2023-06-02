@@ -190,6 +190,23 @@ public class TokenService<TUser, TContext> : ITokenService
         
         _logger.LogInformation("Revoked all refresh tokens for user with id {UserId}", userId);
     }
+    
+    public ClaimsPrincipal? RetrieveClaimsPrincipal(JwtToken token)
+    {
+        try
+        {
+            var temporalToken = _securityTokenHandler.ReadJwtToken(token.Token);
+
+            var principal = new ClaimsPrincipal(new ClaimsIdentity(temporalToken.Claims));
+
+            return principal;
+        }
+        catch
+        {
+            return default;
+        }
+
+    }
 
     private static string EncodeRefreshToken(Guid refreshTokenId) => $"refresh_token:{refreshTokenId}";
 }
