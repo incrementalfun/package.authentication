@@ -194,4 +194,17 @@ public class TokenServiceTests
                 .CountAsync();
         }
     }
+    
+    [Test]
+    public async Task TokenService_Retrieves_A_ClaimsPrincipal_From_A_Token()
+    {
+        var token = await _tokenService!.GenerateTokenAsync(_testUser!.Id);
+
+        var principal = _tokenService.RetrieveClaimsPrincipal(token);
+        
+        Assert.IsInstanceOf<ClaimsPrincipal>(principal);
+
+        Assert.IsNotEmpty(principal!.Claims);
+    }
+
 }
