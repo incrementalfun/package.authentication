@@ -13,5 +13,5 @@ public record JwtToken
     /// <summary>
     /// Refresh token.
     /// </summary>
-    public Guid RefreshToken { get; init; }
+    public string RefreshToken { get; init; }
 }
