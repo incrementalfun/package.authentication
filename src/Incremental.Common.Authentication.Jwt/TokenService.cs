@@ -46,7 +46,9 @@ public class TokenService<TUser, TContext> : ITokenService
         
         var user = await _userManager.FindByIdAsync(userId);
         var claims = await _userManager.GetClaimsAsync(user) as List<Claim>;
-
+        var refreshClaims = claims?.Where(claim => claim.Type == ClaimTypes.NameIdentifier).ToList();
+        refreshClaims?.Add(new Claim(ClaimTypes.SerialNumber, $"{Guid.NewGuid()}"));
+        
         if (audiences is not null)
         {
             _logger.LogInformation("JWT token will have the following audiences: {@Audiences}", audiences);
@@ -55,15 +57,15 @@ public class TokenService<TUser, TContext> : ITokenService
         }
 
         var token = GenerateJwtSecurityToken();
-        
-        var refreshToken = Guid.NewGuid();
+
+        var refreshToken = GenerateJwtRefreshToken();
 
         await StoreRefreshTokenAsync(refreshToken);
         
         return new JwtToken
         {
             Token = new JwtSecurityTokenHandler().WriteToken(token),
-            RefreshToken = refreshToken
+            RefreshToken = new JwtSecurityTokenHandler().WriteToken(refreshToken)
         };
 
         JwtSecurityToken GenerateJwtSecurityToken()
@@ -79,13 +81,27 @@ public class TokenService<TUser, TContext> : ITokenService
 
             return generatedToken;
         };
+        
+        JwtSecurityToken GenerateJwtRefreshToken()
+        {
+            var generatedToken =  new JwtSecurityToken(
+                issuer: _issuer,
+                claims: refreshClaims,
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.Add(_tokenServiceOptions.RefreshTokenLifetime),
+                signingCredentials: _signingCredentials);
+            
+            _logger.LogInformation("Generated JWT security token");
 
-        async Task StoreRefreshTokenAsync(Guid guid)
+            return generatedToken;
+        };
+
+        async Task StoreRefreshTokenAsync(JwtSecurityToken jwt)
         {
             await _userManager.SetAuthenticationTokenAsync(
                 user: user,
                 loginProvider: _tokenServiceOptions.ApplicationLoginProvider,
-                tokenName: EncodeRefreshToken(guid),
+                tokenName: EncodeRefreshToken(jwt.Claims.First(claim => claim.Type == ClaimTypes.SerialNumber).Value),
                 tokenValue: DateTime.UtcNow.Add(_tokenServiceOptions.RefreshTokenLifetime).Ticks.ToString());
             
             _logger.LogInformation("Stored refresh token {RefreshToken}", refreshToken);
@@ -107,11 +123,11 @@ public class TokenService<TUser, TContext> : ITokenService
         validationParameters.ValidIssuer = _issuer;
         validationParameters.IssuerSigningKey = _signingCredentials.Key;
 
-        var principal = _securityTokenHandler.ValidateToken(token.Token, validationParameters, out var securityToken);
+        var principal = _securityTokenHandler.ValidateToken(token.RefreshToken, validationParameters, out var securityToken);
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256))
         {
-            _logger.LogInformation("JWT security token was invalid, refresh aborted");
+            _logger.LogInformation("JWT refresh token was invalid, refresh aborted");
 
             return default;
         }
@@ -123,7 +139,7 @@ public class TokenService<TUser, TContext> : ITokenService
             return default;
         }
 
-        var user = await _userManager.FindByIdAsync(principal.FindFirstValue(ClaimTypes.NameIdentifier));
+        var user = await _userManager.FindByIdAsync(principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty);
 
         if (user is null)
         {
@@ -163,14 +179,14 @@ public class TokenService<TUser, TContext> : ITokenService
         async Task<DateTime?> RetrieveRefreshTokenLifetimeAsync()
         {
             var information = await _userManager.GetAuthenticationTokenAsync(user, _tokenServiceOptions.ApplicationLoginProvider,
-                EncodeRefreshToken(token.RefreshToken));
+                EncodeRefreshToken(principal.FindFirstValue(ClaimTypes.SerialNumber) ?? string.Empty));
             return information is null ? default(DateTime?) : new DateTime(Convert.ToInt64(information));
         }
 
         async Task RemoveRefreshTokenAsync()
         {
             await _userManager.RemoveAuthenticationTokenAsync(user, _tokenServiceOptions.ApplicationLoginProvider,
-                EncodeRefreshToken(token.RefreshToken));
+                EncodeRefreshToken(principal.FindFirstValue(ClaimTypes.SerialNumber) ?? string.Empty));
         }
     }
 
@@ -208,5 +224,5 @@ public class TokenService<TUser, TContext> : ITokenService
 
     }
 
-    private static string EncodeRefreshToken(Guid refreshTokenId) => $"refresh_token:{refreshTokenId}";
+    private static string EncodeRefreshToken(string refreshToken) => $"refresh_token:{refreshToken}";
 }
